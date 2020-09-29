@@ -7,7 +7,7 @@
     </head>
     <body>
         <script>
-            let canvas, ctx, population, walls, gameSpeed = 1, a
+            let canvas, ctx, population, walls, gameSpeed = 1, generation = 0
 
             function createCanvas(width, height) {
                 canvas = document.createElement('canvas')
@@ -25,24 +25,20 @@
                 }
             }
 
-            class Wall {
-                constructor() {
-                    if (walls) this.x = canvas.width + 150 * walls.length
-                    else this.x = canvas.width
-                    this.height = Math.floor(Math.random() * 25)
-                    this.width =  3
-                    this.y = canvas.height - this.height
-                    this.color = 'white'
-                    this.isOutOfView = false
-                }
-                move() {
+            function Wall() {
+                if (walls) this.x = canvas.width + 150 * walls.length
+                else this.x = canvas.width
+
+                this.height = Math.floor(Math.random() * 25)
+                this.width =  3
+                this.y = canvas.height - this.height
+                this.color = 'white'
+                this.isOutOfView = false
+
+                this.move = function() {
                     if (this.x < 0 - this.width * 2) this.isOutOfView = true
                     else this.x -= gameSpeed
                 }
-            }
-
-            function sortByFitness(a, b) {
-                return a.fitness - b.fitness
             }
 
             function run() {
@@ -79,13 +75,19 @@
 
                 if (areTheyAllDead) {
                     gameSpeed = 1
-                    cloneTheFittest()
+                    population.sort((a, b) => a.fitness - b.fitness)
+
+                    generation++
+                    console.log('Generation:', generation)
+                    console.log('Best fitness: ', population[population.length - 1].fitness)
+
+                    const bestDna = population[population.length - 1].dna.slice()
 
                     for (let i = 0; i < population.length; i++) {
-                        if (i != population.length - 1) {
-                            population[i].cromossome.mutate()
+                        if (i != population.length - 1 && Math.random() > 0.1) {
+                            population[i].dna = mutateBestDna(bestDna)
                         }
-                        population[i] = new Square(population[i].cromossome.dna)
+                        population[i] = new Square(population[i].dna)
                     }
                     createWalls(5)
                 } else {
@@ -94,19 +96,42 @@
                 requestAnimationFrame(run)
             }
 
-            function cloneTheFittest() {
-                population.sort(sortByFitness)
-                
-                for (let i = 0; i < population.length; i++) {
-                    if (i != population.length - 1) {
-                        population[i].cromossome.dna = population[population.length - 1].cromossome.dna
+            function newDna() {
+                const { 
+                    inpSize,
+                    hiddenSize, 
+                    hiddenAmount, 
+                    outpSize, 
+                    weightAmount 
+                } = calcWeightAmount(5, 3, 1, 1)
+
+                const nodeAmount = inpSize + hiddenSize * hiddenAmount
+
+                const arr = []
+                for (let i = 0; i < nodeAmount; i++) {
+                    if (i < inpSize) arr.push(new Array(hiddenSize))
+                    else if (i >= nodeAmount - hiddenSize) arr.push(new Array(outpSize))
+                    else arr.push(new Array(hiddenSize))
+
+                    for (let k = 0; k < arr[i].length; k++) {
+                        arr[i][k] = newWeight()
                     }
                 }
-                console.log(population)
+                return arr
             }
 
-            class Perceptron {
-                feedForward() {
+            function Square(dna) {
+                if (dna) this.dna = dna
+                else this.dna = newDna()
+
+                this.fitness = 0
+                this._width = 10
+                this.hasJustScored = false
+                this.width = this._width
+                this._height = 19
+
+                
+                this.feedForward = function() {
                     const { 
                         wallHeight, 
                         wallDistance, 
@@ -119,7 +144,6 @@
                         gameSpeed, 
                         this.height, 
                         this.width, 
-                        wallWidth
                     ]
 
                     const { 
@@ -128,7 +152,7 @@
                         hiddenAmount, 
                         outpSize, 
                         weightAmount 
-                    } = calcWeightAmount(6, 1, 1, 2)
+                    } = calcWeightAmount(5, 3, 1, 1)
 
                     const hidden = []
                     const nodeAmount = inpSize + hiddenSize * hiddenAmount
@@ -150,7 +174,7 @@
                     // calcs the first hidden layer
                     for (let i = 0; i < hiddenSize; i++) {
                         for (let k = 0; k < input.length; k++) {
-                            hidden[0][i] += input[k] * this.cromossome.dna[k][i]
+                            hidden[0][i] += input[k] * this.dna[k][i]
                         }
                     }
 
@@ -165,44 +189,33 @@
 
                     for (let i = 0; i < outpSize; i++) {
                         for (let k = 0; k < hidden[0].length; k++) {
-                            output[0][i] += hidden[0][k] * this.cromossome.dna[k + hiddenSize * hiddenAmount + 2][i]
+                            output[0][i] += hidden[0][k] * this.dna[k + hiddenSize * hiddenAmount + 2][i]
                         }
                     }
-                    if (this.#stepBack(output[0][0]) == 1) this.jump()
-                    if (this.#stepBack(output[0][1] == 1)) this.crouch()
-                    
-                    // if (this.#sigmoid(output[0][0]) > 0.55) this.crouch()
-                    // else if (this.#sigmoid(output[0][0])  < 0.40) this.jump()
+
+                    if (this.sigmoid(output[0][0]) > 0.55) this.jump()
+                    else if (this.sigmoid(output[0][0]) < 0.45) this.crouch()
+                    else this.isCrouching = false
+                    // if (this.stepBack(output[0][0]) == 1) this.jump()
+                    // if (this.stepBack(output[0][1] == 1)) this.crouch()
                 }
-                #sigmoid(x) {
+                this.sigmoid = function(x) {
                     return 1 / (1 + Math.pow(Math.E, -x))
                 }
-                #stepBack(x) {
+                this.stepBack = function(x) {
                     if (x >= 1) return 1
                     return 0
                 }
-            }
+                this.height = this._height
+                this.color = newColor()
+                this.isOnTheAir = false
+                this.velocity = 0
+                this.isAlive = true
+                this.x = 10
+                this.y = canvas.height - this.height
+                this.isCrouching = false
 
-            class Square extends Perceptron {
-                constructor(dna) {
-                    super()
-                    this.cromossome = new Cromossome()
-                    if (dna) this.cromossome.dna = dna
-                    this.fitness = 0
-                    this._width = 10
-                    this.hasJustScored = false
-                    this.width = this._width
-                    this._height = 19
-                    this.height = this._height
-                    this.color = newColor()
-                    this.isOnTheAir = false
-                    this.velocity = 0
-                    this.isAlive = true
-                    this.x = 10
-                    this.y = canvas.height - this.height
-                    this.isCrouching = false
-                }
-                fall() {
+                this.fall = function() {
                     if (!this.isAlive) this.x--
                     
                     else if (this.y > canvas.height - this.height) {
@@ -213,9 +226,9 @@
                         this.y += this.velocity
                     }
                 }
-                jump() {
+                this.jump = function() {
                     if (!this.isOnTheAir) {
-                        this.velocity = -10.2
+                        this.velocity = -12.2
                         this.y += this.velocity
                         this.height = this._height
                         this.width = this._width
@@ -223,7 +236,7 @@
                         this.isCrouching = false
                     }
                 }
-                crouch() {
+                this.crouch = function() {
                     if (!this.isCrouching) {
                         this.height = this.height / 2
                         this.width += this.width / 2
@@ -236,12 +249,24 @@
 
             function calcFitness(square, i) {
                 if (isThereCollision(square, getTheClosestWall(square).wall, 'onlyX') && !square.hasJustScored && population[i].isAlive) {
-                    population[i].fitness++
-                    population[i].hasJustScored = true
+                    square.fitness++
+                    square.hasJustScored = true
                     setTimeout(() => {
-                        population[i].hasJustScored = false
+                        square.hasJustScored = false
                     }, 150)
                 }
+            }
+
+            function mutateBestDna(bestDna) {
+                const arr = bestDna
+
+                const randCol = Math.floor(Math.random() * arr.length)
+                const randRow = Math.floor(Math.random() * arr[randCol].length)
+                    
+                bestDna = JSON.parse(JSON.stringify(bestDna))
+                bestDna[randCol][randRow] = newWeight()
+
+                return bestDna
             }
 
             function isThereCollision(a, b, option) {
@@ -260,10 +285,6 @@
                 ctx.fillStyle = that.color
                 ctx.fillRect(that.x, that.y, that.width, that.height)
             }
-
-            addEventListener('keydown', ({ key }) => {
-                if (key == ' ') population[0].jump()
-            })
 
             function calcWeightAmount(inpSize, hiddenSize, hiddenAmount, outpSize) {
                 let weightAmount = inpSize * hiddenSize
@@ -320,44 +341,15 @@
                 return color
             }
 
-            class Cromossome {
-                constructor() {
-                    this.dna = []
-
-                    const { 
-                        inpSize,
-                        hiddenSize, 
-                        hiddenAmount, 
-                        outpSize, 
-                        weightAmount 
-                    } = calcWeightAmount(6, 1, 1, 2)
-
-                    const nodeAmount = inpSize + hiddenSize * hiddenAmount
-
-                    for (let i = 0; i < nodeAmount; i++) {
-                        if (i < inpSize) this.dna.push(new Array(hiddenSize))
-                        else if (i >= nodeAmount - hiddenSize) this.dna.push(new Array(outpSize))
-                        else this.dna.push(new Array(hiddenSize))
-
-                        for (let k = 0; k < this.dna[i].length; k++) {
-                            this.dna[i][k] = this.#newWeight()
-                        }
-                    }
-                }
-                mutate() {
-                    const randCol = Math.floor(Math.random() * this.dna.length)
-                    const randRow = Math.floor(Math.random() * this.dna[randCol].length)
-                    this.dna[randCol][randRow] = this.#newWeight()
-                }
-                #newWeight = function() {
-                    if (Math.random() > 0.5) return Math.random()
-                    return -Math.random()
-                }
+            function newWeight() {
+                if (Math.random() > 0.5) 
+                    return Math.random()
+                return -Math.random()
             }
             
             createCanvas(300, 300)
-            createPopulation(152)
-            createWalls(3)
+            createPopulation(154)
+            createWalls(5)
 
             run()
         </script>
