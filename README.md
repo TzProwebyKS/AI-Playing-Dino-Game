@@ -1,1 +1,1 @@
-# IA-Playing-Dino-Game
+# AI-Playing-Dino-Game
