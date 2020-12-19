@@ -312,6 +312,7 @@ function getTheClosestWall(square) {
     }
 
     return {
+        wall: walls[indexOfClosestWall],
         wallHeight: walls[indexOfClosestWall].height,
         wallDistance: Math.abs(walls[indexOfClosestWall].x - square.x),
         wallWidth: walls[indexOfClosestWall].width,
