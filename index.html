@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>AI Playing Dino Game</title>
+    </head>
+
+    <body>
+        <script src="src/classes/neuralNetwork/neuralNetwork.js"></script>
+        <script src="src/classes/neuralNetwork/activationFunctions/ReLu.js"></script>
+        <script src="src/classes/neuralNetwork/activationFunctions/binaryStep.js"></script>
+        <script src="src/classes/neuralNetwork/activationFunctions/sigmoid.js"></script>
+        <script src="src/classes/neuralNetwork/activationFunctions/bipolarStep.js"></script>
+        <script src="src/classes/neuralNetwork/prototypes/feedForward.js"></script>
+        <script src="src/classes/neuralNetwork/utils/newWeight.js"></script>
+
+        <script src="src/classes/individual/individual.js"></script>
+        <script src="src/classes/individual/prototypes/fall.js"></script>
+        <script src="src/classes/individual/prototypes/crouch.js"></script>
+        <script src="src/classes/individual/prototypes/jump.js"></script>
+        <script src="src/classes/individual/prototypes/mutateRandomGene.js"></script>
+        <script src="src/classes/individual/prototypes/breed.js"></script>
+        <script src="src/classes/individual/utils/newColor.js"></script>
+
+        <script src="src/classes/wall/wall.js"></script>
+        <script src="src/classes/wall/prototypes/move.js"></script>
+
+        <script src="src/classes/population/population.js"></script>
+        <script src="src/classes/population/prototypes/mutation.js"></script>
+        <script src="src/classes/population/prototypes/replicateTheFittest.js"></script>
+        <script src="src/classes/population/prototypes/sortFromBestToWorst.js"></script>
+        <script src="src/classes/population/prototypes/breeding.js"></script>
+
+        <script src="src/classes/game/game.js"></script>
+        <script src="src/classes/game/prototypes/run.js"></script>
+        <script src="src/classes/game/prototypes/increaseSpeed.js"></script>
+        <script src="src/classes/game/prototypes/getTheClosestWall.js"></script>
+        <script src="src/classes/game/utils/didCollide.js"></script>
+        <script src="src/classes/game/utils/didPonctuate.js"></script>
+
+        <script src="src/classes/setup/setup.js"></script>
+        <script src="src/classes/setup/prototypes/run.js"></script>
+
+        <script src="src/classes/canvas/canvas.js"></script>
+        <script src="src/classes/canvas/prototypes/draw.js"></script>
+        <script src="src/classes/canvas/prototypes/clear.js"></script>
+
+        <script src="src/main.js"></script>
+    </body>
+</html>
