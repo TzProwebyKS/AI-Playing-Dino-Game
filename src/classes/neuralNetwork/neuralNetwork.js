@@ -8,14 +8,14 @@ function NeuralNetwork(neuralNetworkCfg, weights) {
         this.weights = []
 
         let quantityOfWeights = 0
-        // inputs weights
+        // inputs weights + bias weight
         quantityOfWeights += (this.config.inputNodes + 1) * this.config.hiddenNodes
         // hidden weights
-        quantityOfWeights += this.config.hiddenNodes * this.config.hiddenLayers * (this.config.hiddenLayers - 1)
+        if (this.config.hiddenLayers > 1) {
+            quantityOfWeights += (this.config.hiddenNodes + 1) * (this.config.hiddenLayers + 1) * this.config.hiddenLayers
+        }
         // outputs weights
-        quantityOfWeights += this.config.hiddenNodes * this.config.outputNodes
-        // bias weights 
-        quantityOfWeights += this.config.hiddenLayers
+        quantityOfWeights += (this.config.hiddenNodes + 1) * this.config.outputNodes
 
         for (let c = 0; c < quantityOfWeights; c++) {
             this.weights.push(newWeight())

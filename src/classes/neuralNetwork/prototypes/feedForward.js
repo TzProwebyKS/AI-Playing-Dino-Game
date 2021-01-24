@@ -21,7 +21,6 @@ NeuralNetwork.prototype.feedForward = function(inputs) {
 
         this.hiddens[0][y] = ReLu(this.hiddens[0][y], this.config.useReLu)
     }
-
     // insert bias
     this.hiddens[0].unshift(this.config.bias)
     
@@ -45,19 +44,15 @@ NeuralNetwork.prototype.feedForward = function(inputs) {
     }
 
     const indexOfLastHidden = this.hiddens.length - 1 
-
     // calcs the output
     for (let c = 0; c < this.config.outputNodes; c++) {
         this.outputs[c] = 0
 
-        for (let r = 0; r < this.hiddens[0].length; r++) {
+        for (let r = 0; r < this.hiddens[indexOfLastHidden].length; r++) {
             this.outputs[c] += this.hiddens[indexOfLastHidden][r] * this.weights[indexOfWeight]
             indexOfWeight++
         }
     }
-
     // activate outputs
-    for (let i = 0; i < this.outputs.length; i++) {
-        this.outputs[i] = this.config.activationFunction(this.outputs[i])
-    }
+    this.outputs = this.config.activationFunction(this.outputs)
 }

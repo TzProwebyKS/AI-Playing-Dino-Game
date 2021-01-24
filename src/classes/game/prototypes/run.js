@@ -32,23 +32,24 @@ Game.prototype.run = function(canvas, individuals) {
             }
 
             let distanceFromWall = 0
+            let wallHeight = 0
 
             if (this.walls[0]) {
-                wall = this.getTheClosestWall(indiv)
+                const wall = this.getTheClosestWall(indiv)
+                wallHeight = wall.height
                 distanceFromWall = Math.abs(wall.x - (indiv.x + indiv.width))
             }
 
             indiv.neuralNetwork.feedForward([
                 distanceFromWall,
-                this.speed,
-                indiv.isCrouching ? 1 : 0,
-                indiv.isInTheAir ? 1 : 0
+                wallHeight,
+                this.speed
             ])
 
-            if (indiv.neuralNetwork.outputs[0] == 1) {
+            if (indiv.neuralNetwork.outputs[0] > indiv.neuralNetwork.outputs[1]) {
                 indiv.jump()
             }
-            else if (indiv.neuralNetwork.outputs[0] == -1) {
+            else if (indiv.neuralNetwork.outputs[1] > indiv.neuralNetwork.outputs[0]) {
                 indiv.crouch()
             }
         }
